@@ -145,48 +145,70 @@ app.post('/api/transcribe/:filename', async (req, res) => {
     // Step 1: Get transcription from Azure
     const AZURE_SERVICE_URL = process.env.AZURE_SERVICE_URL || 'http://localhost:5001';
     
-    console.log('🎬 Calling Azure transcription service...');
-    const transcriptionResponse = await fetch(`${AZURE_SERVICE_URL}/transcribe`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        audio_file_path: filePath
-      })
-    });
+    console.log('🎬 Calling Azure transcription service...', AZURE_SERVICE_URL);
+    let transcriptionResult;
+    try {
+      const transcriptionResponse = await fetch(`${AZURE_SERVICE_URL}/transcribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          audio_file_path: filePath
+        })
+      });
 
-    if (!transcriptionResponse.ok) {
-      const errorText = await transcriptionResponse.text();
-      console.log('❌ Azure service error:', transcriptionResponse.status, errorText);
-      throw new Error('Azure transcription service failed');
+      if (!transcriptionResponse.ok) {
+        const errorText = await transcriptionResponse.text();
+        console.log('❌ Azure service error:', transcriptionResponse.status, errorText);
+        throw new Error(`Azure transcription service failed (${transcriptionResponse.status})`);
+      }
+
+      transcriptionResult = await transcriptionResponse.json();
+    } catch (e) {
+      console.error('🔌 Could not reach Azure service at', AZURE_SERVICE_URL, e);
+      return res.status(502).json({
+        success: false,
+        error: 'Cannot reach Azure transcription service. Is it running at ' + AZURE_SERVICE_URL + '?',
+        hint: 'Start backend/azure_transcription_service.py and check /health'
+      });
     }
 
-    const transcriptionResult = await transcriptionResponse.json();
     console.log('✅ Azure transcription completed!');
     console.log('📝 Found', transcriptionResult.segments?.length || 0, 'transcript segments');
 
     // Step 2: Get emotion detection from Hume
     const HUME_SERVICE_URL = process.env.HUME_SERVICE_URL || 'http://localhost:5000';
     
-    console.log('🎭 Calling Hume emotion detection service...');
-    const emotionResponse = await fetch(`${HUME_SERVICE_URL}/analyze`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        audio_file_path: filePath
-      })
-    });
+    console.log('🎭 Calling Hume emotion detection service...', HUME_SERVICE_URL);
+    let emotionResult;
+    try {
+      const emotionResponse = await fetch(`${HUME_SERVICE_URL}/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          audio_file_path: filePath
+        })
+      });
 
-    if (!emotionResponse.ok) {
-      const errorText = await emotionResponse.text();
-      console.log('❌ Hume service error:', emotionResponse.status, errorText);
-      throw new Error('Hume emotion detection service failed');
+      if (!emotionResponse.ok) {
+        const errorText = await emotionResponse.text();
+        console.log('❌ Hume service error:', emotionResponse.status, errorText);
+        throw new Error('Hume emotion detection service failed');
+      }
+
+      emotionResult = await emotionResponse.json();
+    } catch (e) {
+      console.error('🔌 Could not reach Hume service at', HUME_SERVICE_URL, e);
+      return res.status(502).json({
+        success: false,
+        error: 'Cannot reach Hume emotion service. Is it running at ' + HUME_SERVICE_URL + '?',
+        hint: 'Start the Hume service and check /health'
+      });
     }
 
-    const emotionResult = await emotionResponse.json();
     console.log('✅ Hume emotion detection completed!');
     console.log('🎭 Found', emotionResult.segments?.length || 0, 'emotion segments');
 
