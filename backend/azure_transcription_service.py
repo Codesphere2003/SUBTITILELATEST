@@ -185,8 +185,8 @@ def transcribe_audio():
             return jsonify({'error': 'Audio file not found'}), 400
         
         # Get Azure credentials from environment
-        api_key = os.environ.get('AZURE_VIDEO_INDEXER_API_KEY', '8075883a19d8434fbbd7fe7ee38f5c6f')
-        account_id = os.environ.get('AZURE_VIDEO_INDEXER_ACCOUNT_ID', '398969ab-2964-4b6c-9fc6-80486e766222')
+        api_key = os.environ.get('AZURE_VIDEO_INDEXER_API_KEY', '49659eac772a4ef3950940986fae6223')
+        account_id = os.environ.get('AZURE_VIDEO_INDEXER_ACCOUNT_ID', '1f406357-bffb-45f2-91fe-02ef69da2203')
         location = os.environ.get('AZURE_VIDEO_INDEXER_LOCATION', 'trial')
         
         # Initialize Azure Video Indexer
