@@ -158,32 +158,17 @@ app.post('/api/transcribe/:filename', async (req, res) => {
         })
       });
 
-      if (transcriptionResponse.ok) {
-        transcriptionResult = await transcriptionResponse.json();
-      } else {
-        // Pass through detailed error from Azure service
-        let errBody;
-        let errText;
-        try {
-          errBody = await transcriptionResponse.json();
-        } catch (_) {
-          errText = await transcriptionResponse.text();
-        }
-        console.log('❌ Azure service error:', transcriptionResponse.status, errBody || errText);
-        return res.status(transcriptionResponse.status).json({
-          success: false,
-          source: 'azure',
-          status: transcriptionResponse.status,
-          error: (errBody && (errBody.error || errBody.message)) || errText || 'Azure transcription service error',
-          details: errBody || undefined
-        });
+      if (!transcriptionResponse.ok) {
+        const errorText = await transcriptionResponse.text();
+        console.log('❌ Azure service error:', transcriptionResponse.status, errorText);
+        throw new Error(`Azure transcription service failed (${transcriptionResponse.status})`);
       }
+
+      transcriptionResult = await transcriptionResponse.json();
     } catch (e) {
-      // Network/connection error only
       console.error('🔌 Could not reach Azure service at', AZURE_SERVICE_URL, e);
       return res.status(502).json({
         success: false,
-        source: 'azure',
         error: 'Cannot reach Azure transcription service. Is it running at ' + AZURE_SERVICE_URL + '?',
         hint: 'Start backend/azure_transcription_service.py and check /health'
       });
@@ -208,32 +193,17 @@ app.post('/api/transcribe/:filename', async (req, res) => {
         })
       });
 
-      if (emotionResponse.ok) {
-        emotionResult = await emotionResponse.json();
-      } else {
-        // Pass through detailed error from Hume service
-        let errBody;
-        let errText;
-        try {
-          errBody = await emotionResponse.json();
-        } catch (_) {
-          errText = await emotionResponse.text();
-        }
-        console.log('❌ Hume service error:', emotionResponse.status, errBody || errText);
-        return res.status(emotionResponse.status).json({
-          success: false,
-          source: 'hume',
-          status: emotionResponse.status,
-          error: (errBody && (errBody.error || errBody.message)) || errText || 'Hume emotion detection service error',
-          details: errBody || undefined
-        });
+      if (!emotionResponse.ok) {
+        const errorText = await emotionResponse.text();
+        console.log('❌ Hume service error:', emotionResponse.status, errorText);
+        throw new Error('Hume emotion detection service failed');
       }
+
+      emotionResult = await emotionResponse.json();
     } catch (e) {
-      // Network/connection error only
       console.error('🔌 Could not reach Hume service at', HUME_SERVICE_URL, e);
       return res.status(502).json({
         success: false,
-        source: 'hume',
         error: 'Cannot reach Hume emotion service. Is it running at ' + HUME_SERVICE_URL + '?',
         hint: 'Start the Hume service and check /health'
       });
