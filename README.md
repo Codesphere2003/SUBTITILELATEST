@@ -28,7 +28,7 @@ The only requirement is having **Python 3.8+** and **pip** installed.
 
 Follow these steps:
 
-```bash
+
 # Step 1: Clone the repository using the project's Git URL.
 git clone https://github.com/Codesphere2003/SUBTITILELATEST.git
 
@@ -128,3 +128,9 @@ OpenAI Whisper / Google Speech-to-Text for transcription
 DeepL / Google Translate for translation
 
 Flask framework for backend development
+
+**Local Network Access & Wi‑Fi Policy**
+By submitting this project, we consent to event organizers and judges accessing
+the listed local endpoints while connected to the event Wi‑Fi for evaluation
+purposes. We understand that organizers will not access private customer data
+and will only use provided credentials.
