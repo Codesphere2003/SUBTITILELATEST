@@ -44,6 +44,11 @@ class AzureVideoIndexer:
     
     def upload_audio(self, access_token: str, audio_path: str, audio_name: str) -> str:
         """Upload audio file to Video Indexer"""
+        # Sanitize filename: replace double dots and invalid characters
+        import re
+        audio_name = re.sub(r'\.{2,}', '.', audio_name)  # Replace multiple dots with single dot
+        audio_name = re.sub(r'[^\w\-\.]', '_', audio_name)  # Replace invalid chars with underscore
+        
         url = f"{self.base_url}/Videos"
         
         params = {
